@@ -3,20 +3,23 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gscan/ai"
 	"gscan/engine"
-	"gscan/gemini"
 	"gscan/github"
 	"os"
 
 	"github.com/chromedp/chromedp"
 )
 
-var prompt string = ""
+var (
+	systemMessage string = "You will recieve a search query and Html source for the result of the search query in github.com search, extract from it the outcome of the search only then list it with the code/repositorie/issue/etc under the bullet point, so the user will excpect a list of results that is easy to read without side menues or anything else other than the result for the query, the output should be easialy reradable in any unix terminal, so do not wrap or use any formatting for your input or explain anything."
+	prompt        string = ""
+)
 
 func main() {
 	query := flag.String("query", "", "Github Search Query")
 	searchType := flag.String("type", "code", "Github Search Query type, code || repositories || issues || pullrequests || users || commits")
-	count := flag.Int("count", 1, "Github Search Query Code Pages count, max 5")
+	count := flag.Int("page-count", 1, "Github Search Query Code Pages count, max 5")
 	loginIsNeeded := false
 	flag.BoolFunc("login", "Will Login and presist the user session of the engine for later usage", func(s string) error {
 		loginIsNeeded = true
@@ -40,6 +43,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	var agent ai.AiAgent = ai.OpenAiAgent{}
+
 	if len(*query) > 0 {
 		if *searchType == "code" {
 			for page := 1; page <= *count; page++ {
@@ -49,7 +54,8 @@ func main() {
 				}
 
 				fmt.Println("Thinking ... ")
-				gemini.Summarize(fmt.Sprintf("This Html source is the search result for a search query in github.com search, convert it into md format or a format that would be easially reradable in the unix terminals, the query was (%s) and the content is : %s", *query, html))
+				prompt := fmt.Sprintf("Query : %s\n Html source result : %s", *query, html)
+				fmt.Println(agent.Process(prompt, "Model isn't used for now", systemMessage))
 			}
 		} else {
 
@@ -59,8 +65,10 @@ func main() {
 			}
 
 			fmt.Println("Thinking ... ")
-			gemini.Summarize(fmt.Sprintf(prompt, query, html))
 
+			prompt := fmt.Sprintf("Query : %s\n Html source result : %s", *query, html)
+
+			fmt.Println(agent.Process(prompt, "Model isn't used for now", systemMessage))
 		}
 	}
 }
