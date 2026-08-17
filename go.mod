@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/chromedp/chromedp v0.13.0
 	github.com/openai/openai-go v0.1.0-alpha.59
-	github.com/pquerna/otp v1.4.0
+	github.com/pquerna/otp v1.5.0
 )
 
 require (
